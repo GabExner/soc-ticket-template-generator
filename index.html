@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SOC Ticket Template Generator</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      background:#f6f7fb;
+      margin:0;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 22px auto;
+      padding: 0 14px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid #e7e7ef;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.05);
+      overflow:hidden;
+    }
+
+    label {
+      display:block;
+      font-size: 12px;
+      font-weight: 650;
+      margin: 10px 0 6px;
+      color:#2a2a2a;
+    }
+
+    select, input, textarea {
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #d8d8e6;
+      border-radius: 10px;
+      background:#fff;
+      outline:none;
+      display:block;
+      color:#2a2a2a;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .row {
+      display:flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .row > div {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    button {
+      padding:10px 14px;
+      border-radius: 10px;
+      border: 1px solid #1a3c79;
+      background:#1f57b7;
+      color:#fff;
+      cursor:pointer;
+      font-weight: 650;
+    }
+
+    button.secondary {
+      background:#fff;
+      color:#1a3c79;
+    }
+
+    .actions-center {
+      display:flex;
+      justify-content:center;
+      margin-top: 14px;
+    }
+
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid #ddd;
+      background:#fff;
+      font-size:12px;
+    }
+
+    .dot {
+      width:10px;
+      height:10px;
+      border-radius:50%;
+    }
+
+    /* subtle note below badges */
+    .badge-note {
+      font-size: 11px;
+      color:#7a7a7a;
+      margin-top: 6px;
+      margin-left: 4px;
+    }
+
+    .divider {
+      height: 1px;
+      background:#e7e7ef;
+      margin: 18px 0;
+    }
+
+    .out {
+      min-height: 340px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: #9bb6e6;
+      box-shadow: 0 0 0 3px rgba(31,87,183,.10);
+    }
+
+    /* CAPS + stronger visual weight */
+    .select-emphasis {
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .credit {
+      position: fixed;
+      bottom: 6px;
+      right: 10px;
+      font-size: 10px;
+      color: #b5b5b5;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="card">
+
+    <label>Template Type</label>
+    <select id="tipo">
+      <option value="case">Standard Case Template</option>
+      <option value="incident">Incident Response Template</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label>Priority</label>
+        <select id="prioridade" onchange="updateBadges()">
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low" selected>Low</option>
+        </select>
+      </div>
+
+      <div id="riscoWrap">
+        <label>Risk</label>
+        <select id="risco" onchange="updateBadges()">
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low" selected>Low</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <span class="badge">
+        <span class="dot" id="dotPrioridade"></span>
+        <span>Priority</span>
+      </span>
+
+      <span class="badge" id="badgeRisco">
+        <span class="dot" id="dotRisco"></span>
+        <span>Risk</span>
+      </span>
+    </div>
+
+    <!-- OPERATIONS NOTE -->
+    <div class="badge-note">
+      * Remember to manually apply Priority/Risk colors in your chat/ticketing tool (if applicable).
+    </div>
+
+    <div id="incidentFieldsTitle" style="display:none;">
+      <label>📃 Title</label>
+      <input id="titulo"/>
+    </div>
+
+    <label>⛑️ Ticket ID</label>
+    <input id="registro"/>
+
+    <!-- STANDARD CASE -->
+    <div id="caseFields">
+      <label>🏷️ Brand / Business Unit</label>
+      <input id="marca"/>
+
+      <label>🧭 Source</label>
+      <input id="fonte"/>
+
+      <label>📝 Description</label>
+      <textarea id="descricao_p"></textarea>
+
+      <label>🔎 Identified Data</label>
+      <textarea id="dados"></textarea>
+
+      <label>⚠️ Risk Assessment</label>
+      <textarea id="avaliacao"></textarea>
+
+      <label>🛠️ Recommendations</label>
+      <textarea id="recomendacoes"></textarea>
+    </div>
+
+    <!-- INCIDENT RESPONSE -->
+    <div id="incidentFieldsBody" style="display:none;">
+      <label>☄️ Impact</label>
+      <textarea id="impacto"></textarea>
+
+      <label>🔖 Alert Description</label>
+      <textarea id="descricao_c"></textarea>
+
+      <label>🦠 Entities & IOCs</label>
+      <textarea id="iocs"></textarea>
+
+      <label>🖥️ Affected Hosts</label>
+      <textarea id="hosts"></textarea>
+
+      <label>✅ Actions Performed</label>
+      <textarea id="acoes_soc"></textarea>
+
+      <label>🛠️ Actions Required</label>
+      <textarea id="acoes_cliente"></textarea>
+
+      <label>📌 Conclusion</label>
+      <textarea id="conclusao"></textarea>
+    </div>
+
+    <div class="actions-center">
+      <button onclick="gerar()">Generate</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <label>Output</label>
+    <textarea id="resultado" class="out"></textarea>
+
+    <div class="actions-center">
+      <button class="secondary" onclick="copiarEApagar()">Copy output</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="credit">
+  developed by Gabriel Exner
+</div>
+
+<script>
+  const colors = {
+    "Critical": "#d11f2d",
+    "High": "#ff3b30",
+    "Medium": "#ff9500",
+    "Low": "#34c759"
+  };
+
+  function updateBadges(){
+    const p = prioridade.value;
+    const r = risco.value;
+
+    dotPrioridade.style.background = colors[p] || "#999";
+    dotRisco.style.background = colors[r] || "#999";
+
+    prioridade.classList.add("select-emphasis");
+    risco.classList.add("select-emphasis");
+
+    prioridade.style.color = colors[p] || "#2a2a2a";
+    risco.style.color = colors[r] || "#2a2a2a";
+  }
+  updateBadges();
+
+  function v(id){ return (document.getElementById(id)?.value || "").trim(); }
+
+  function bullets(text){
+    if(!text) return "";
+    return text
+      .split("\n")
+      .map(l => l.trim())
+      .filter(Boolean)
+      .map(l => l.startsWith("-") ? l : "- " + l)
+      .join("\n");
+  }
+
+  function applyTipoUI(){
+    const t = v("tipo");
+    caseFields.style.display = t === "case" ? "block" : "none";
+    incidentFieldsTitle.style.display = t === "incident" ? "block" : "none";
+    incidentFieldsBody.style.display = t === "incident" ? "block" : "none";
+    riscoWrap.style.display = t === "incident" ? "block" : "none";
+    badgeRisco.style.display = t === "incident" ? "inline-flex" : "none";
+    updateBadges();
+  }
+
+  tipo.addEventListener("change", applyTipoUI);
+  applyTipoUI();
+
+  function gerar(){
+    let texto = "";
+    const prioridadeUpper = v("prioridade").toUpperCase();
+    const riscoUpper = v("risco").toUpperCase();
+
+    if(v("tipo") === "case"){
+      texto =
+`📌 Priority
+*${prioridadeUpper}*
+
+⛑️ Ticket ID
+${v("registro")}
+
+🏷️ Brand / Business Unit
+${v("marca")}
+
+🧭 Source
+${v("fonte")}
+
+📝 Description
+${v("descricao_p")}
+
+🔎 Identified Data
+${bullets(v("dados"))}
+
+⚠️ Risk Assessment
+${bullets(v("avaliacao"))}
+
+🛠️ Recommendations
+${bullets(v("recomendacoes"))}
+`;
+    } else {
+      texto =
+`📃 Title
+*${v("titulo")}*
+
+⛑️ Ticket ID
+${v("registro")}
+
+‼️ Priority
+*${prioridadeUpper}*
+
+🚨 Risk
+*${riscoUpper}*
+
+☄️ Impact
+${v("impacto")}
+
+🔖 Alert Description
+${v("descricao_c")}
+
+🦠 Entities & IOCs
+${bullets(v("iocs"))}
+
+🖥️ Affected Hosts
+${bullets(v("hosts"))}
+
+✅ Actions Performed
+${bullets(v("acoes_soc"))}
+
+🛠️ Actions Required
+${v("acoes_cliente")}
+
+📌 Conclusion
+${v("conclusao")}
+`;
+    }
+
+    resultado.value = texto.trim() + "\n";
+  }
+
+  async function copiarEApagar(){
+    if(!resultado.value.trim()) return;
+    await navigator.clipboard.writeText(resultado.value);
+    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
+    resultado.value = "";
+    applyTipoUI();
+    registro.focus();
+  }
+</script>
+</body>
+</html>
